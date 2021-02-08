@@ -28,6 +28,7 @@ def toOneList(l):
 
 def addToGraphRunner(x):
     try:
+        x = x['value']
         xlog('addToGraphRunner:', 'count=', x['count'])
 
         # converting the image to matrix of colors
@@ -68,15 +69,17 @@ def addToStream(x):
 def shouldTakeFrame(x):
     try:
         global framesToDrop
+        v = x['value']
         framesToDrop += 1
-        xlog('shouldTakeFrame', x['count'], (framesToDrop % 10 == 0))
+        xlog('shouldTakeFrame', v['count'], (framesToDrop % 10 == 0))
         return framesToDrop % 10 == 0
     except:
         xlog('shouldTakeFrame: error:', sys.exc_info()[0])
 
 def passAll(x):
     try:
-        redisgears.executeCommand('xadd', 'all', 'MAXLEN', '~', str(MAX_IMAGES), '*', 'image', 'data:image/jpeg;base64,' + base64.b64encode(x['img']).decode('utf8'))
+        v = x['value']
+        redisgears.executeCommand('xadd', 'all', 'MAXLEN', '~', str(MAX_IMAGES), '*', 'image', 'data:image/jpeg;base64,' + base64.b64encode(v['img']).decode('utf8'))
     except:
         xlog('passAll: error:', sys.exc_info()[0])
 
@@ -87,4 +90,4 @@ gearsCtx('StreamReader').\
     map(addToGraphRunner).\
     filter(lambda x: 'cat' in x[0]).\
     foreach(addToStream).\
-    register('camera:0')
+    register(prefix='camera:0')
